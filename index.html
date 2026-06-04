@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DisChan</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- 1. Дисклеймер / Ограничение 18+ -->
+    <div id="disclaimer-overlay" class="overlay">
+        <div class="modal-box">
+            <div class="lang-switch-container">
+                <button onclick="setLanguage('ru')">RU</button>
+                <button onclick="setLanguage('en')">EN</button>
+            </div>
+
+            <div id="disclaimer-text-ru" class="lang-content">
+                <h2>Внимание (18+)</h2>
+                <p>Этот сайт может содержать контент, не предназначенный для лиц младше 18 лет. Продолжая, вы подтверждаете свой совершеннолетний возраст.</p>
+            </div>
+            <div id="disclaimer-text-en" class="lang-content hidden">
+                <h2>Warning (18+)</h2>
+                <p>This site may contain content not intended for persons under 18 years of age. By continuing, you confirm that you are of legal age.</p>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="btn-exit" class="btn-danger" onclick="exitSite()">Выйти / Exit</button>
+                <button id="btn-enter" class="btn-success" onclick="acceptDisclaimer()">Войти / Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной интерфейс приложения (скрыт до принятия дисклеймера) -->
+    <div id="main-app" class="app-container hidden">
+
+        <!-- Верхняя панель (Шапка) -->
+        <header class="top-bar">
+            <div class="logo">DisChan</div>
+            <div class="stats">
+                <span id="text-online">Онлайн:</span> <span id="online-counter">144</span>
+            </div>
+            <div class="top-actions">
+                <button onclick="toggleLanguage()" id="btn-lang-toggle">EN</button>
+                <button onclick="logout()" id="btn-logout" class="hidden">Выйти</button>
+            </div>
+        </header>
+
+        <!-- Главная рабочая область -->
+        <div class="main-content">
+
+            <!-- Левая панель (Авторизация и профиль в стиле Discord) -->
+            <aside class="sidebar">
+                <!-- Блок для неавторизованных пользователей -->
+                <div id="auth-box" class="sidebar-block">
+                    <h3 id="label-auth-title">Регистрация</h3>
+                    <input type="text" id="auth-username" placeholder="Никнейм">
+                    <button onclick="registerUser()" id="btn-register">Создать аккаунт</button>
+                </div>
+
+                <!-- Блок для авторизованных пользователей -->
+                <div id="profile-box" class="sidebar-block hidden">
+                    <div class="user-info">
+                        <span class="avatar-imitation"></span>
+                        <div class="user-details">
+                            <div id="profile-name" class="username">User</div>
+                            <div id="profile-id" class="user-id">#0000</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Панель создания нового поста (Тред) -->
+                <div class="sidebar-block post-form-block">
+                    <h3 id="label-create-post">Создать пост</h3>
+                    <textarea id="post-text" placeholder="Что у вас нового?"></textarea>
+
+                    <label class="file-upload-label" for="post-file">
+                        <span id="label-choose-file">Выбрать фото/видео</span>
+                        <input type="file" id="post-file" accept="image/*,video/*" onchange="handleFileSelect()">
+                    </label>
+                    <div id="file-preview-name"></div>
+
+                    <button onclick="createNewPost()" id="btn-send-post" class="btn-success">Опубликовать</button>
+                </div>
+            </aside>
+
+            <!-- Правая часть: Лента постов (анонимная борда + стиль чата дискорда) -->
+            <main class="feed-area">
+                <div id="posts-container" class="posts-list">
+                    <!-- Посты будут рендериться динамически из app.js -->
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
