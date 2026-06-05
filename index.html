@@ -8,14 +8,12 @@
 </head>
 <body>
 
-    <!-- 1. Дисклеймер / Ограничение 18+ -->
     <div id="disclaimer-overlay" class="overlay">
         <div class="modal-box">
             <div class="lang-switch-container">
                 <button onclick="setLanguage('ru')">RU</button>
                 <button onclick="setLanguage('en')">EN</button>
             </div>
-
             <div id="disclaimer-text-ru" class="lang-content">
                 <h2>Внимание (18+)</h2>
                 <p>Этот сайт может содержать контент, не предназначенный для лиц младше 18 лет. Продолжая, вы подтверждаете свой совершеннолетний возраст.</p>
@@ -24,7 +22,6 @@
                 <h2>Warning (18+)</h2>
                 <p>This site may contain content not intended for persons under 18 years of age. By continuing, you confirm that you are of legal age.</p>
             </div>
-
             <div class="modal-buttons">
                 <button id="btn-exit" class="btn-danger" onclick="exitSite()">Выйти / Exit</button>
                 <button id="btn-enter" class="btn-success" onclick="acceptDisclaimer()">Войти / Enter</button>
@@ -32,65 +29,73 @@
         </div>
     </div>
 
-    <!-- Основной интерфейс приложения (скрыт до принятия дисклеймера) -->
+    <div id="settings-overlay" class="overlay hidden">
+        <div class="modal-box settings-box">
+            <h2 id="label-settings-title">Настройки</h2>
+            <div class="setting-item">
+                <span id="label-compact-mode">Компактный режим (Скрыть медиа)</span>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-compact" onchange="toggleCompactMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button class="btn-close" onclick="closeSettings()" id="btn-close-settings">Закрыть</button>
+        </div>
+    </div>
+
     <div id="main-app" class="app-container hidden">
 
-        <!-- Верхняя панель (Шапка) -->
         <header class="top-bar">
             <div class="logo">DisChan</div>
             <div class="stats">
                 <span id="text-online">Онлайн:</span> <span id="online-counter">144</span>
             </div>
             <div class="top-actions">
+                <button onclick="openSettings()" id="btn-settings">⚙️</button>
                 <button onclick="toggleLanguage()" id="btn-lang-toggle">EN</button>
                 <button onclick="logout()" id="btn-logout" class="hidden">Выйти</button>
             </div>
         </header>
 
-        <!-- Главная рабочая область -->
         <div class="main-content">
 
-            <!-- Левая панель (Авторизация и профиль в стиле Discord) -->
-            <aside class="sidebar">
-                <!-- Блок для неавторизованных пользователей -->
-                <div id="auth-box" class="sidebar-block">
-                    <h3 id="label-auth-title">Регистрация</h3>
-                    <input type="text" id="auth-username" placeholder="Никнейм">
-                    <button onclick="registerUser()" id="btn-register">Создать аккаунт</button>
-                </div>
-
-                <!-- Блок для авторизованных пользователей -->
-                <div id="profile-box" class="sidebar-block hidden">
-                    <div class="user-info">
-                        <span class="avatar-imitation"></span>
-                        <div class="user-details">
-                            <div id="profile-name" class="username">User</div>
-                            <div id="profile-id" class="user-id">#0000</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Панель создания нового поста (Тред) -->
-                <div class="sidebar-block post-form-block">
-                    <h3 id="label-create-post">Создать пост</h3>
-                    <textarea id="post-text" placeholder="Что у вас нового?"></textarea>
-
-                    <label class="file-upload-label" for="post-file">
-                        <span id="label-choose-file">Выбрать фото/видео</span>
-                        <input type="file" id="post-file" accept="image/*,video/*" onchange="handleFileSelect()">
-                    </label>
-                    <div id="file-preview-name"></div>
-
-                    <button onclick="createNewPost()" id="btn-send-post" class="btn-success">Опубликовать</button>
-                </div>
-            </aside>
-
-            <!-- Правая часть: Лента постов (анонимная борда + стиль чата дискорда) -->
             <main class="feed-area">
                 <div id="posts-container" class="posts-list">
-                    <!-- Посты будут рендериться динамически из app.js -->
-                </div>
+                    </div>
             </main>
+
+            <aside class="sidebar">
+                <div class="sidebar-scrollable">
+                    <div id="auth-box" class="sidebar-block">
+                        <h3 id="label-auth-title">Регистрация</h3>
+                        <input type="text" id="auth-username" placeholder="Никнейм">
+                        <button onclick="registerUser()" id="btn-register">Создать аккаунт</button>
+                    </div>
+
+                    <div id="profile-box" class="sidebar-block hidden">
+                        <div class="user-info">
+                            <div class="avatar-imitation"></div>
+                            <div class="user-details">
+                                <div id="profile-name" class="username">User</div>
+                                <div id="profile-id" class="user-id">#0000</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-block post-form-block">
+                        <h3 id="label-create-post">Создать пост</h3>
+                        <textarea id="post-text" placeholder="Что у вас нового?"></textarea>
+
+                        <label class="file-upload-label" for="post-file">
+                            <span id="label-choose-file">Выбрать фото/видео</span>
+                            <input type="file" id="post-file" accept="image/*,video/*" onchange="handleFileSelect()">
+                        </label>
+                        <div id="file-preview-name"></div>
+
+                        <button onclick="createNewPost()" id="btn-send-post" class="btn-primary">Опубликовать</button>
+                    </div>
+                </div>
+            </aside>
 
         </div>
     </div>
