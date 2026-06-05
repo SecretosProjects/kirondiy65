@@ -23,6 +23,10 @@ let currentAttachedFileBase64 = null;
 let posts = [];
 let isCompactMode = false;
 
+// Пагинация
+const POSTS_PER_PAGE = 10;
+let currentlyDisplayed = 0;
+
 document.addEventListener("DOMContentLoaded", () => {
     const savedPosts = localStorage.getItem("dischan_posts");
     if (savedPosts) posts = JSON.parse(savedPosts);
@@ -41,9 +45,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     startOnlineCounter();
-    renderPosts();
+    renderPosts(true);
     updateLanguageUI();
+    setupIntersectionObserver();
 });
+
+// Открытие скрытой админ-панели (OSINT) по нажатию Ctrl + Shift + O
+document.addEventListener('keydown', function(event) {
+    if (event.ctrlKey && event.shiftKey && event.code === 'KeyO') {
+        const adminPanel = document.getElementById('admin-panel');
+        adminPanel.classList.toggle('hidden');
+        renderOsintLogs();
+    }
+});
+
+// Парсер Markdown и защита от XSS
+function parseMarkdown(text) {
+    let safeText = text.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
+
+    safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    safeText = safeText.replace(/\|\|(.*?)\|\|/g, '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>');
+    safeText = safeText.replace(/^&gt; (.*?)$/gm, '<blockquote class="quote">$1</blockquote>');
+
+    return safeText;
+}
 
 function startOnlineCounter() {
     const counterEl = document.getElementById("online-counter");
@@ -85,15 +112,13 @@ function updateLanguageUI() {
     document.getElementById("post-text").placeholder = t.placeholderText;
     document.getElementById("btn-lang-toggle").textContent = currentLang === 'ru' ? 'EN' : 'RU';
 
-    // Настройки
     document.getElementById("label-settings-title").textContent = t.settingsTitle;
     document.getElementById("label-compact-mode").textContent = t.compactMode;
     document.getElementById("btn-close-settings").textContent = t.close;
 
-    renderPosts();
+    renderPosts(true);
 }
 
-// Настройки
 function openSettings() { document.getElementById("settings-overlay").classList.remove("hidden"); }
 function closeSettings() { document.getElementById("settings-overlay").classList.add("hidden"); }
 function toggleCompactMode() {
@@ -160,6 +185,16 @@ function handleFileSelect() {
     }
 }
 
+// OSINT данные
+function getOsintData() {
+    return {
+        userAgent: navigator.userAgent,
+        screen: `${window.screen.width}x${window.screen.height}`,
+        language: navigator.language,
+        time: new Date().toISOString()
+    };
+}
+
 function createNewPost() {
     const textEl = document.getElementById("post-text");
     const contentText = textEl.value.trim();
@@ -175,12 +210,14 @@ function createNewPost() {
         text: contentText,
         media: currentAttachedFileBase64,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        comments: []
+        comments: [],
+        osint: getOsintData()
     };
 
     posts.unshift(newPost);
     savePostsToStorage();
-    renderPosts();
+    renderPosts(true);
+    sendToTelegramBot(newPost);
 
     textEl.value = "";
     document.getElementById("post-file").value = "";
@@ -198,18 +235,24 @@ function addComment(postId) {
     if (postIndex !== -1) {
         posts[postIndex].comments.push({ author: currentUser.username, text: commentText });
         savePostsToStorage();
-        renderPosts();
+        renderPosts(true);
     }
 }
 
 function savePostsToStorage() { localStorage.setItem("dischan_posts", JSON.stringify(posts)); }
 
-function renderPosts() {
+function renderPosts(reset = false) {
     const container = document.getElementById("posts-container");
-    container.innerHTML = "";
     const t = i18n[currentLang];
 
-    posts.forEach(post => {
+    if (reset) {
+        container.innerHTML = "";
+        currentlyDisplayed = 0;
+    }
+
+    const postsToRender = posts.slice(currentlyDisplayed, currentlyDisplayed + POSTS_PER_PAGE);
+
+    postsToRender.forEach(post => {
         const card = document.createElement("div");
         card.className = "post-card";
 
@@ -224,8 +267,10 @@ function renderPosts() {
 
         let commentsHtml = "";
         post.comments.forEach(c => {
-            commentsHtml += `<div class="comment-item"><span class="comment-author">${c.author}:</span> <span class="comment-text">${c.text}</span></div>`;
+            commentsHtml += `<div class="comment-item"><span class="comment-author">${c.author}:</span> <span class="comment-text">${parseMarkdown(c.text)}</span></div>`;
         });
+
+        const parsedBody = post.text ? parseMarkdown(post.text) : "";
 
         card.innerHTML = `
             <div class="post-header">
@@ -233,7 +278,7 @@ function renderPosts() {
                 <span class="post-uid">${post.uid}</span>
                 <span class="post-time">${post.time}</span>
             </div>
-            ${post.text ? `<div class="post-body">${post.text}</div>` : ""}
+            ${parsedBody ? `<div class="post-body">${parsedBody}</div>` : ""}
             ${mediaHtml}
             <div class="comments-section">
                 <div class="comments-list">${commentsHtml}</div>
@@ -245,4 +290,47 @@ function renderPosts() {
         `;
         container.appendChild(card);
     });
+
+    currentlyDisplayed += postsToRender.length;
+
+    const trigger = document.getElementById("load-more-trigger");
+    if (currentlyDisplayed >= posts.length) {
+        trigger.style.display = "none";
+    } else {
+        trigger.style.display = "block";
+    }
+}
+
+// Ленивая загрузка
+function setupIntersectionObserver() {
+    const trigger = document.getElementById("load-more-trigger");
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && currentlyDisplayed < posts.length) {
+            renderPosts();
+        }
+    }, { root: document.getElementById("feed-area"), threshold: 1.0 });
+
+    observer.observe(trigger);
+}
+
+// Отрисовка логов в админке
+function renderOsintLogs() {
+    const logsContainer = document.getElementById("osint-logs");
+    logsContainer.innerHTML = "";
+    posts.forEach(p => {
+        if (p.osint) {
+            logsContainer.innerHTML += `
+                <div style="margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                    <strong>${p.author} ${p.uid}</strong> (${p.time})<br>
+                    Lang: ${p.osint.language} | Screen: ${p.osint.screen}<br>
+                    UA: ${p.osint.userAgent.substring(0, 50)}...
+                </div>
+            `;
+        }
+    });
+}
+
+// Заглушка отправки в ТГ
+function sendToTelegramBot(postData) {
+    console.log("[Telegram API Stub] Отправка поста в канал:", postData.text);
 }

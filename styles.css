@@ -109,7 +109,7 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
     display: flex;
     flex: 1;
     overflow: hidden;
-    flex-direction: row; /* Десктоп */
+    flex-direction: row;
 }
 
 /* Лента */
@@ -195,35 +195,52 @@ input:checked + .slider:before { transform: translateX(20px); background-color: 
 .file-upload-label input { display: none; }
 #file-preview-name { font-size: 11px; color: var(--accent-blue); margin-bottom: 10px; word-break: break-all; }
 
-/* ====== АДАПТИВНОСТЬ (Планшеты и Мобилки) ====== */
+/* Подсказки по разметке Markdown */
+.markup-hints {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* Стили Markdown */
+.post-body b { color: #fff; font-weight: 700; }
+.spoiler {
+    background-color: var(--text-main);
+    color: transparent;
+    border-radius: 3px;
+    padding: 0 4px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+.spoiler.revealed { background-color: var(--bg-input); color: var(--text-main); }
+.quote {
+    border-left: 3px solid var(--accent-blue);
+    padding-left: 10px;
+    margin: 5px 0;
+    color: var(--text-muted);
+    font-style: italic;
+    background: rgba(84, 122, 165, 0.1);
+}
+
+/* Триггер ленивой загрузки */
+.load-more { text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px; }
+
+/* ====== АДАПТИВНОСТЬ ====== */
 @media (max-width: 1024px) {
     .sidebar { width: 250px; }
 }
 
 @media (max-width: 768px) {
-    /* На телефонах панель управления переносится вниз */
-    .main-content {
-        flex-direction: column;
-    }
-
+    .main-content { flex-direction: column; }
     .sidebar {
         width: 100%;
         border-left: none;
         border-top: 1px solid var(--border-color);
-        max-height: 40vh; /* Ограничиваем высоту, чтобы лента была видна */
+        max-height: 40vh;
     }
-
-    .sidebar-scrollable {
-        flex-direction: row; /* Блоки становятся в ряд, если помещаются */
-        gap: 10px;
-        padding: 10px;
-    }
-
-    .sidebar-block {
-        flex: 1;
-        min-width: 250px;
-        padding: 10px;
-    }
+    .sidebar-scrollable { flex-direction: row; gap: 10px; padding: 10px; }
+    .sidebar-block { flex: 1; min-width: 250px; padding: 10px; }
 }
 
 @media (max-width: 500px) {
