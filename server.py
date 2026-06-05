@@ -1,130 +1,105 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import time
-import json
 import os
+import sqlite3
+import shutil
+from fastapi import FastAPI, Form, File, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+import uvicorn
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
 
-DB_FILE = 'posts_db.json'
-USERS_FILE = 'users_db.json'
-ADMIN_PASSWORD = "admin123"  # Твой пароль для удаления постов и просмотра юзеров
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
-posts_db = []
-users_db = []
-active_users = {}  # Словарь для хранения времени последнего пинга: { ip_или_id: timestamp }
-
-# Загрузка баз данных при старте
-if os.path.exists(DB_FILE):
-    try:
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
-            posts_db = json.load(f)
-    except Exception:
-        pass
-
-if os.path.exists(USERS_FILE):
-    try:
-        with open(USERS_FILE, 'r', encoding='utf-8') as f:
-            users_db = json.load(f)
-    except Exception:
-        pass
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
-def save_db(data, filename):
-    with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+def init_db():
+    conn = sqlite3.connect('forum.db')
+    c = conn.cursor()
+    c.execute(
+        'CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, text TEXT, media_url TEXT, media_type TEXT)')
+    c.execute(
+        'CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, user_id TEXT, text TEXT)')
+    conn.commit()
+    conn.close()
 
 
-# --- АВТОРИЗАЦИЯ И ЮЗЕРЫ ---
-@app.route('/api/register', methods=['POST'])
-def register():
-    data = request.json
-    # Проверяем, нет ли уже такого юзера
-    if not any(u['uid'] == data['uid'] for u in users_db):
-        data['reg_time'] = time.strftime('%Y-%m-%d %H:%M:%S')
-        data['ip'] = request.headers.get('X-Forwarded-For', request.remote_addr)
-        users_db.append(data)
-        save_db(users_db, USERS_FILE)
-    return jsonify({"status": "success"})
+init_db()
 
 
-# --- РЕАЛЬНЫЙ ОНЛАЙН (HEARTBEAT) ---
-@app.route('/api/ping', methods=['POST'])
-def ping():
-    data = request.json or {}
-    # Если юзер не вошел в аккаунт, считаем его по IP + случайной сессии
-    user_id = data.get('uid', request.remote_addr)
-
-    # Обновляем время активности
-    active_users[user_id] = time.time()
-
-    # Считаем тех, кто был активен последние 10 секунд
-    current_time = time.time()
-    online_count = sum(1 for t in active_users.values() if current_time - t < 10)
-
-    # Очистка старых сессий для экономии памяти
-    keys_to_delete = [k for k, t in active_users.items() if current_time - t > 60]
-    for k in keys_to_delete:
-        del active_users[k]
-
-    return jsonify({"online": online_count})
+@app.get("/")
+def read_root():
+    return FileResponse("index.html")
 
 
-# --- ПОСТЫ И КОММЕНТАРИИ ---
-@app.route('/api/posts', methods=['GET'])
-def get_posts():
-    return jsonify(posts_db)
+@app.get("/styles.css")
+def read_css():
+    return FileResponse("styles.css")
 
 
-@app.route('/api/posts', methods=['POST'])
-def add_post():
-    data = request.json
-    data['id'] = int(time.time() * 1000)
-    if 'comments' not in data: data['comments'] = []
-
-    client_ip = request.remote_addr
-    forwarded_ip = request.headers.get('X-Forwarded-For', '')
-    if 'osint' not in data: data['osint'] = {}
-    data['osint']['server_ip'] = forwarded_ip if forwarded_ip else client_ip
-    data['osint']['server_user_agent'] = request.headers.get('User-Agent')
-
-    posts_db.insert(0, data)
-    save_db(posts_db, DB_FILE)
-    return jsonify({"status": "success"})
+@app.get("/app.js")
+def read_js():
+    return FileResponse("app.js")
 
 
-@app.route('/api/posts/<int:post_id>/comment', methods=['POST'])
-def add_comment(post_id):
-    comment_data = request.json
-    for post in posts_db:
-        if post['id'] == post_id:
-            post['comments'].append(comment_data)
-            save_db(posts_db, DB_FILE)
-            return jsonify({"status": "success"})
-    return jsonify({"status": "error"}), 404
+@app.get("/api/posts")
+def get_posts(q: str = ""):
+    conn = sqlite3.connect('forum.db')
+    c = conn.cursor()
+    if q:
+        c.execute('SELECT id, user_id, text, media_url, media_type FROM posts WHERE text LIKE ? ORDER BY id DESC',
+                  ('%' + q + '%',))
+    else:
+        c.execute('SELECT id, user_id, text, media_url, media_type FROM posts ORDER BY id DESC')
+    posts = [{"id": r[0], "user_id": r[1], "text": r[2], "media_url": r[3], "media_type": r[4]} for r in c.fetchall()]
+    conn.close()
+    return posts
 
 
-# --- АДМИНКА (Защищенные маршруты) ---
-def check_admin():
-    return request.headers.get('X-Admin-Token') == ADMIN_PASSWORD
+@app.post("/api/posts")
+def create_post(user_id: str = Form(...), text: str = Form(""), file: UploadFile = File(None)):
+    media_url = ""
+    media_type = ""
+
+    if file and file.filename:
+        filepath = f"uploads/{file.filename}"
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        media_url = f"/{filepath}"
+        if file.content_type.startswith("video/"):
+            media_type = "video"
+        elif file.content_type.startswith("image/"):
+            media_type = "image"
+
+    conn = sqlite3.connect('forum.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO posts (user_id, text, media_url, media_type) VALUES (?, ?, ?, ?)',
+              (user_id, text, media_url, media_type))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
 
 
-@app.route('/api/admin/users', methods=['GET'])
-def get_all_users():
-    if not check_admin(): return jsonify({"error": "Wrong password"}), 403
-    return jsonify(users_db)
+@app.get("/api/posts/{post_id}/comments")
+def get_comments(post_id: int):
+    conn = sqlite3.connect('forum.db')
+    c = conn.cursor()
+    c.execute('SELECT id, user_id, text FROM comments WHERE post_id = ? ORDER BY id ASC', (post_id,))
+    comments = [{"id": r[0], "user_id": r[1], "text": r[2]} for r in c.fetchall()]
+    conn.close()
+    return comments
 
 
-@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
-def delete_post(post_id):
-    if not check_admin(): return jsonify({"error": "Wrong password"}), 403
-    global posts_db
-    posts_db = [p for p in posts_db if p['id'] != post_id]
-    save_db(posts_db, DB_FILE)
-    return jsonify({"status": "success"})
+@app.post("/api/posts/{post_id}/comments")
+def create_comment(post_id: int, user_id: str = Form(...), text: str = Form(...)):
+    conn = sqlite3.connect('forum.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO comments (post_id, user_id, text) VALUES (?, ?, ?)', (post_id, user_id, text))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
 
 
-if __name__ == '__main__':
-    print("🚀 Сервер запущен на http://0.0.0.0:5000")
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)

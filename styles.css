@@ -1,328 +1,125 @@
-/* ==========================================================================
-   1. ПЕРЕМЕННЫЕ И ОСНОВНЫЕ НАСТРОЙКИ (Серо-голубая палитра)
-   ========================================================================== */
-:root {
-    --bg-dark: #2c323a;
-    --bg-panel: #3a434d;
-    --bg-input: #23282f;
-    --text-main: #d0d8e0;
-    --text-muted: #8b9cae;
-    --accent-blue: #547aa5;
-    --accent-blue-hover: #436387;
-    --accent-red: #c25e5e;
-    --accent-red-hover: #a14e4e;
-    --accent-green: #5c966c;
-    --accent-green-hover: #487855;
-    --border-color: #4b5663;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
-    overflow: hidden;
-    height: 100vh;
-    font-size: 14px;
-    transition: font-size 0.2s; /* Плавное изменение размера шрифта из настроек */
+    background-color: #546e7a;
+    color: #eceff1;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
 }
 
-.hidden { display: none !important; }
-
-/* ==========================================================================
-   2. СТРОГИЙ КВАДРАТНЫЙ СТИЛЬ ДЛЯ КНОПОК
-   ========================================================================== */
-button {
-    cursor: pointer;
-    border: 2px solid var(--border-color);
-    border-radius: 0; /* Полностью квадратные */
-    padding: 10px 16px;
-    font-weight: bold;
-    transition: all 0.1s;
-    background-color: var(--bg-panel);
-    color: var(--text-main);
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.5px;
+.container {
+    width: 100%;
+    max-width: 600px;
 }
 
-button:hover {
-    background-color: var(--bg-input);
-}
-
-.btn-primary { background-color: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
-.btn-primary:hover { background-color: var(--accent-blue-hover); }
-.btn-success { background-color: var(--accent-green); border-color: var(--accent-green); color: #fff; }
-.btn-success:hover { background-color: var(--accent-green-hover); }
-.btn-danger { background-color: var(--accent-red); border-color: var(--accent-red); color: #fff; }
-.btn-danger:hover { background-color: var(--accent-red-hover); }
-
-/* ==========================================================================
-   3. ОКНА ПРЕДУПРЕЖДЕНИЙ И МОДАЛКИ (Острые углы)
-   ========================================================================== */
-.overlay {
+.modal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(25, 29, 34, 0.9);
+    background: rgba(38, 50, 56, 0.95);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
-}
-
-.modal-box {
-    background-color: var(--bg-panel);
-    padding: 30px;
-    border-radius: 0; /* Полностью квадратные */
-    max-width: 500px;
-    width: 90%;
-    text-align: center;
-    border: 2px solid var(--border-color);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-.modal-box h2 { color: var(--text-main); margin-bottom: 15px; text-transform: uppercase; font-size: 18px; }
-.modal-box p { color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
-.lang-switch-container { display: flex; justify-content: flex-end; gap: 5px; margin-bottom: 15px; }
-
-/* Кастомные настройки свитчера (Переключателя) */
-.settings-box { text-align: left; }
-.setting-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px; }
-.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-input); transition: .4s; }
-.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .4s; }
-input:checked + .slider { background-color: var(--accent-blue); }
-input:checked + .slider:before { transform: translateX(20px); background-color: #fff; }
-.btn-close { width: 100%; margin-top: 10px; }
-
-/* ==========================================================================
-   4. ГЛАВНЫЙ ИНТЕРФЕЙС И ШАПКА (С поисковой строкой)
-   ========================================================================== */
-.app-container { display: flex; flex-direction: column; height: 100vh; }
-
-.top-bar {
-    height: 50px;
-    background-color: var(--bg-panel);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.logo { font-weight: bold; font-size: 18px; color: #fff; letter-spacing: 1px; text-transform: uppercase; }
-.stats { background: var(--bg-input); padding: 4px 12px; border: 1px solid var(--border-color); font-size: 13px; }
-#online-counter { color: var(--accent-blue); font-weight: bold; }
-.top-actions { display: flex; gap: 8px; }
-
-/* Стилизация строки поиска в шапке */
-.search-box input {
-    font-size: 13px;
-    transition: all 0.2s;
-}
-.search-box input:focus {
-    border-color: var(--accent-blue);
-    background-color: #1a1e24;
-}
-
-.main-content {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    flex-direction: row;
-    padding-bottom: 60px; /* Отступ для Bottom Bar */
-}
-
-/* ==========================================================================
-   5. ЛЕНТА ПОСТОВ, МАРКДАУН И КОМПАКТНЫЙ РЕЖИМ
-   ========================================================================== */
-.feed-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.posts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.post-card {
-    background-color: var(--bg-panel);
-    border: 2px solid var(--border-color);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.post-header { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-.post-author { font-weight: bold; color: var(--accent-blue); }
-.post-uid { font-size: 12px; color: var(--text-muted); }
-.post-time { font-size: 12px; margin-left: auto; color: var(--text-muted); }
-.post-body { font-size: 15px; line-height: 1.4; white-space: pre-wrap; }
-
-.post-media img, .post-media video {
-    max-width: 100%; max-height: 400px; margin-top: 5px; border: 1px solid var(--border-color);
-}
-
-/* Элементы разметки Markdown */
-.post-body b { color: #fff; font-weight: 700; }
-.spoiler {
-    background-color: var(--text-main);
-    color: transparent;
-    padding: 0 4px;
-    cursor: pointer;
-    transition: background-color 0.1s, color 0.1s;
-}
-.spoiler.revealed { background-color: var(--bg-input); color: var(--text-main); }
-.quote {
-    border-left: 3px solid var(--accent-blue);
-    padding-left: 10px;
-    margin: 5px 0;
-    color: var(--text-muted);
-    font-style: italic;
-    background: rgba(84, 122, 165, 0.1);
-}
-
-/* Компактный режим (Скрытие медиа) */
-.compact-mode .post-media { display: none !important; }
-
-/* Триггер ленивой загрузки */
-.load-more { text-align: center; padding: 20px; color: var(--text-muted); font-size: 14px; font-weight: bold; text-transform: uppercase; }
-
-/* ==========================================================================
-   6. СИСТЕМА КОММЕНТАРИЕВ ВНУТРИ ПОСТА
-   ========================================================================== */
-.comments-section { background-color: var(--bg-dark); border: 1px solid var(--border-color); padding: 10px; margin-top: 10px; }
-.comments-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; max-height: 200px; overflow-y: auto; }
-.comment-item { font-size: 13px; line-height: 1.3; padding: 4px 0; border-bottom: 1px solid var(--bg-panel); }
-.comment-item:last-child { border-bottom: none; }
-.comment-author { font-weight: bold; color: var(--text-main); margin-right: 5px; }
-
-.comment-input-block { display: flex; gap: 8px; }
-.comment-input-block input {
-    flex: 1; background-color: var(--bg-input); border: 2px solid var(--border-color);
-    color: var(--text-main); padding: 6px 10px; font-size: 13px; outline: none;
-}
-.comment-input-block input:focus { border-color: var(--accent-blue); }
-
-/* ==========================================================================
-   7. УПРАВЛЕНИЕ БОКОВОЙ ПАНЕЛЬЮ И ДИЗАЙН БЛОКОВ
-   ========================================================================== */
-.sidebar {
-    width: 300px;
-    background-color: var(--bg-panel);
-    border-left: 2px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-}
-
-.sidebar-scrollable { padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
-.sidebar-block { background-color: var(--bg-dark); padding: 15px; border: 2px solid var(--border-color); }
-.sidebar-block h3 { font-size: 13px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-
-.sidebar-block input[type="text"], .sidebar-block textarea {
-    width: 100%; background-color: var(--bg-input); border: 2px solid var(--border-color);
-    color: var(--text-main); padding: 10px; margin-bottom: 10px; outline: none; resize: none;
-}
-.sidebar-block input[type="text"]:focus, .sidebar-block textarea:focus { border-color: var(--accent-blue); }
-.sidebar-block textarea { height: 80px; }
-.sidebar-block button { width: 100%; }
-
-/* Блок Профиля */
-.user-info { display: flex; align-items: center; gap: 10px; }
-.avatar-imitation { width: 36px; height: 36px; background-color: var(--accent-blue); border: 2px solid var(--text-main); }
-.username { font-weight: bold; font-size: 15px; }
-.user-id { font-size: 12px; color: var(--text-muted); }
-
-/* Кастомный инпут загрузки файлов */
-.file-upload-label {
-    display: block; background-color: var(--bg-input); border: 2px dashed var(--border-color);
-    text-align: center; padding: 10px; font-size: 13px; margin-bottom: 10px; cursor: pointer; transition: background 0.2s;
-}
-.file-upload-label:hover { background-color: var(--bg-panel); }
-.file-upload-label input { display: none; }
-#file-preview-name { font-size: 11px; color: var(--accent-blue); margin-bottom: 10px; word-break: break-all; font-weight: bold; }
-.markup-hints { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; text-align: center; font-family: monospace; }
-
-/* ==========================================================================
-   8. НОВЫЕ СТИЛИ ДЛЯ УВЕДОМЛЕНИЙ И НИЖНЕЙ ПАНЕЛИ (Bottom Bar)
-   ========================================================================== */
-/* Стили для всплывающих уведомлений (Toasts) */
-.toast-message {
-    background: var(--bg-input);
-    color: var(--text-main);
-    border-left: 4px solid var(--accent-blue);
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-    padding: 12px 20px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    animation: slideIn 0.2s ease-out;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-/* Нижняя панель */
-.bottom-bar {
-    position: fixed;
-    bottom: 0; left: 0; width: 100%; height: 60px;
-    background-color: var(--bg-panel);
-    border-top: 2px solid var(--border-color);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
     z-index: 1000;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
 }
 
-.nav-btn {
-    background: transparent; border: none; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 4px; width: 20%; padding: 5px; color: var(--text-muted);
-}
-.nav-btn:hover { background: transparent; color: var(--text-main); }
-.nav-icon { font-size: 20px; }
-.nav-text { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-
-/* ==========================================================================
-   9. АДАПТИВНОСТЬ ДЛЯ ПЛАНШЕТОВ И МОБИЛЬНЫХ УСТРОЙСТВ
-   ========================================================================== */
-@media (max-width: 1024px) {
-    .sidebar { width: 250px; }
+.modal-content {
+    background-color: #455a64;
+    padding: 30px;
+    text-align: center;
+    border: 1px solid #37474f;
 }
 
-@media (max-width: 768px) {
-    .main-content { flex-direction: column; }
-    .sidebar {
-        width: 100%;
-        border-left: none;
-        border-top: 2px solid var(--border-color);
-        max-height: 40vh;
-    }
-    .sidebar-scrollable { flex-direction: row; gap: 10px; padding: 10px; }
-    .sidebar-block { flex: 1; min-width: 250px; padding: 10px; }
+.header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-@media (max-width: 500px) {
-    .sidebar-scrollable { flex-direction: column; }
-    .sidebar { max-height: 50vh; }
-    .post-card { padding: 12px; }
-    .top-bar { padding: 0 10px; }
-    .search-box { display: none !important; } /* Скрываем поиск на мелких экранах ради экономии места */
+form {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 30px;
+    background-color: #455a64;
+    padding: 15px;
+    border: 1px solid #37474f;
+}
+
+input[type="text"], textarea {
+    background-color: #37474f;
+    color: #ffffff;
+    border: 1px solid #263238;
+    padding: 10px;
+    font-family: sans-serif;
+    outline: none;
+    resize: vertical;
+}
+
+textarea {
+    min-height: 80px;
+    margin-bottom: 10px;
+}
+
+input[type="file"] {
+    margin-bottom: 10px;
+}
+
+button {
+    background-color: #37474f;
+    color: #ffffff;
+    border: 1px solid #263238;
+    padding: 10px;
+    cursor: pointer;
+    font-family: sans-serif;
+}
+
+button:hover {
+    background-color: #263238;
+}
+
+.post {
+    background-color: #455a64;
+    border: 1px solid #37474f;
+    padding: 15px;
+    margin-bottom: 20px;
+    word-wrap: break-word;
+}
+
+.post-info {
+    font-size: 0.8em;
+    color: #b0bec5;
+    margin-bottom: 10px;
+}
+
+.media-content {
+    max-width: 100%;
+    margin-top: 10px;
+    border: 1px solid #263238;
+}
+
+.comments-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #37474f;
+}
+
+.comment {
+    background-color: #37474f;
+    padding: 10px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.comment-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.comment-form input {
+    flex-grow: 1;
+    margin-bottom: 0;
 }
