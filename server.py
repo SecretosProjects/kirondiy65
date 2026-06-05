@@ -18,7 +18,7 @@ def init_db():
     conn = sqlite3.connect('forum.db')
     c = conn.cursor()
     c.execute(
-        'CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, text TEXT, media_url TEXT, media_type TEXT)')
+        'CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, text TEXT, media_url TEXT, media_type TEXT, likes INTEGER DEFAULT 0)')
     c.execute(
         'CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER, user_id TEXT, text TEXT)')
     conn.commit()
@@ -48,11 +48,13 @@ def get_posts(q: str = ""):
     conn = sqlite3.connect('forum.db')
     c = conn.cursor()
     if q:
-        c.execute('SELECT id, user_id, text, media_url, media_type FROM posts WHERE text LIKE ? ORDER BY id DESC',
-                  ('%' + q + '%',))
+        c.execute(
+            'SELECT id, user_id, text, media_url, media_type, likes FROM posts WHERE text LIKE ? ORDER BY id DESC',
+            ('%' + q + '%',))
     else:
-        c.execute('SELECT id, user_id, text, media_url, media_type FROM posts ORDER BY id DESC')
-    posts = [{"id": r[0], "user_id": r[1], "text": r[2], "media_url": r[3], "media_type": r[4]} for r in c.fetchall()]
+        c.execute('SELECT id, user_id, text, media_url, media_type, likes FROM posts ORDER BY id DESC')
+    posts = [{"id": r[0], "user_id": r[1], "text": r[2], "media_url": r[3], "media_type": r[4], "likes": r[5]} for r in
+             c.fetchall()]
     conn.close()
     return posts
 
@@ -61,7 +63,6 @@ def get_posts(q: str = ""):
 def create_post(user_id: str = Form(...), text: str = Form(""), file: UploadFile = File(None)):
     media_url = ""
     media_type = ""
-
     if file and file.filename:
         filepath = f"uploads/{file.filename}"
         with open(filepath, "wb") as buffer:
@@ -74,8 +75,29 @@ def create_post(user_id: str = Form(...), text: str = Form(""), file: UploadFile
 
     conn = sqlite3.connect('forum.db')
     c = conn.cursor()
-    c.execute('INSERT INTO posts (user_id, text, media_url, media_type) VALUES (?, ?, ?, ?)',
+    c.execute('INSERT INTO posts (user_id, text, media_url, media_type, likes) VALUES (?, ?, ?, ?, 0)',
               (user_id, text, media_url, media_type))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
+
+@app.post("/api/posts/{post_id}/like")
+def like_post(post_id: int):
+    conn = sqlite3.connect('forum.db')
+    c = conn.cursor()
+    c.execute('UPDATE posts SET likes = likes + 1 WHERE id = ?', (post_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
+
+@app.delete("/api/posts/{post_id}")
+def delete_post(post_id: int, user_id: str):
+    conn = sqlite3.connect('forum.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM posts WHERE id = ? AND user_id = ?', (post_id, user_id))
+    c.execute('DELETE FROM comments WHERE post_id = ?', (post_id,))
     conn.commit()
     conn.close()
     return {"status": "success"}

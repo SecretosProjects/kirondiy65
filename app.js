@@ -1,23 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let currentLang = 'ru';
-
-    const translations = {
-        ru: {
-            search: "Поиск...",
-            placeholder: "Напиши что-нибудь...",
-            btn: "Опубликовать",
-            commentBtn: "Ответить",
-            commentPlaceholder: "Ваш комментарий..."
-        },
-        en: {
-            search: "Search...",
-            placeholder: "Write something...",
-            btn: "Publish",
-            commentBtn: "Reply",
-            commentPlaceholder: "Your comment..."
-        }
-    };
-
     if (!localStorage.getItem('userId')) {
         localStorage.setItem('userId', 'ID_' + Math.random().toString(36).substr(2, 9));
     }
@@ -42,20 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnNo').addEventListener('click', () => {
         window.location.href = "https://google.com";
     });
-
-    const langBtn = document.getElementById('langBtn');
-    langBtn.addEventListener('click', () => {
-        currentLang = currentLang === 'ru' ? 'en' : 'ru';
-        langBtn.textContent = currentLang === 'ru' ? 'EN' : 'RU';
-        updateLanguage();
-        loadPosts();
-    });
-
-    function updateLanguage() {
-        document.getElementById('searchInput').placeholder = translations[currentLang].search;
-        document.getElementById('postText').placeholder = translations[currentLang].placeholder;
-        document.getElementById('submitPost').textContent = translations[currentLang].btn;
-    }
 
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', () => {
@@ -103,21 +70,52 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
+                    let deleteBtnHtml = '';
+                    if (post.user_id === userId) {
+                        deleteBtnHtml = `<button class="action-btn delete-btn" onclick="deletePost(${post.id})">Удалить пост</button>`;
+                    }
+
                     postDiv.innerHTML = `
-                        <div class="post-info">${post.user_id}</div>
+                        <div class="post-info">
+                            <span>Автор: ${post.user_id}</span>
+                        </div>
                         <div>${post.text}</div>
                         ${mediaHtml}
-                        <div class="comments-section" id="comments-${post.id}"></div>
-                        <form class="comment-form" onsubmit="submitComment(event, ${post.id})">
-                            <input type="text" id="comment-text-${post.id}" placeholder="${translations[currentLang].commentPlaceholder}" required>
-                            <button type="submit">${translations[currentLang].commentBtn}</button>
-                        </form>
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="likePost(${post.id})">Лайк (${post.likes})</button>
+                            <button class="action-btn" onclick="toggleComments(${post.id})">Комментарии</button>
+                            ${deleteBtnHtml}
+                        </div>
+                        <div class="comments-section" id="comments-${post.id}">
+                            <div id="comments-list-${post.id}"></div>
+                            <form class="comment-form" onsubmit="submitComment(event, ${post.id})">
+                                <input type="text" id="comment-text-${post.id}" placeholder="Написать комментарий..." required>
+                                <button type="submit">Отправить</button>
+                            </form>
+                        </div>
                     `;
                     feed.appendChild(postDiv);
                     loadComments(post.id);
                 });
             });
     }
+
+    window.likePost = function(postId) {
+        fetch(`/api/posts/${postId}/like`, { method: 'POST' })
+            .then(() => loadPosts(document.getElementById('searchInput').value));
+    };
+
+    window.deletePost = function(postId) {
+        if (confirm("Точно удалить пост?")) {
+            fetch(`/api/posts/${postId}?user_id=${userId}`, { method: 'DELETE' })
+                .then(() => loadPosts(document.getElementById('searchInput').value));
+        }
+    };
+
+    window.toggleComments = function(postId) {
+        const section = document.getElementById(`comments-${postId}`);
+        section.style.display = section.style.display === 'block' ? 'none' : 'block';
+    };
 
     window.submitComment = function(e, postId) {
         e.preventDefault();
@@ -139,16 +137,16 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(`/api/posts/${postId}/comments`)
             .then(response => response.json())
             .then(comments => {
-                const commentsDiv = document.getElementById(`comments-${postId}`);
-                commentsDiv.innerHTML = '';
-                comments.forEach(c => {
-                    const cDiv = document.createElement('div');
-                    cDiv.className = 'comment';
-                    cDiv.textContent = `${c.user_id}: ${c.text}`;
-                    commentsDiv.appendChild(cDiv);
-                });
+                const commentsListDiv = document.getElementById(`comments-list-${postId}`);
+                if (commentsListDiv) {
+                    commentsListDiv.innerHTML = '';
+                    comments.forEach(c => {
+                        const cDiv = document.createElement('div');
+                        cDiv.className = 'comment';
+                        cDiv.textContent = `${c.user_id}: ${c.text}`;
+                        commentsListDiv.appendChild(cDiv);
+                    });
+                }
             });
     }
-
-    updateLanguage();
 });

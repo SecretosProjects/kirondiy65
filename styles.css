@@ -36,6 +36,10 @@ body {
     margin-bottom: 20px;
 }
 
+.header input {
+    width: 100%;
+}
+
 form {
     display: flex;
     flex-direction: column;
@@ -89,6 +93,8 @@ button:hover {
     font-size: 0.8em;
     color: #b0bec5;
     margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .media-content {
@@ -97,10 +103,42 @@ button:hover {
     border: 1px solid #263238;
 }
 
+.post-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #37474f;
+}
+
+.action-btn {
+    background-color: transparent;
+    border: 1px solid #b0bec5;
+    color: #b0bec5;
+    padding: 5px 10px;
+    font-size: 0.9em;
+}
+
+.action-btn:hover {
+    background-color: #37474f;
+    color: #ffffff;
+}
+
+.delete-btn {
+    border-color: #ef5350;
+    color: #ef5350;
+}
+
+.delete-btn:hover {
+    background-color: #ef5350;
+    color: #ffffff;
+}
+
 .comments-section {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #37474f;
+    display: none;
 }
 
 .comment {
