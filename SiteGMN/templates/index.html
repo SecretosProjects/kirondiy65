@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h1>{{ t.title }}</h1>
+        <div class="header-links">
+            <a href="{{ url_for('toggle_lang') }}" class="btn">{{ t.lang_switch }}</a>
+            {% if is_admin %}
+                <a href="{{ url_for('admin_logout') }}" class="btn btn-admin">Выйти из админки</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="post-form-container">
+        <form action="{{ url_for('index') }}" method="POST" enctype="multipart/form-data" class="post-form">
+            <input type="text" name="nickname" placeholder="{{ t.name_placeholder }}" maxlength="50">
+            <textarea name="content" placeholder="{{ t.text_placeholder }}" required></textarea>
+            <div class="file-input">
+                <label>{{ t.file_label }}</label>
+                <input type="file" name="file">
+            </div>
+            <button type="submit">{{ t.post_btn }}</button>
+        </form>
+    </div>
+
+    <div class="posts-container">
+        {% for post in posts %}
+            <div class="post">
+                <div class="post-header">
+                    <span class="post-id">#{{ post.id }}</span>
+                    <span class="post-name">{{ post.nickname }}</span>
+                    <span class="post-date">{{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                    {% if is_admin %}
+                        <a href="{{ url_for('delete_post', post_id=post.id) }}" class="delete-btn">[{{ t.delete_btn }}]</a>
+                    {% endif %}
+                </div>
+                {% if post.filename %}
+                    <div class="post-file">
+                        {% if post.filename.endswith(('jpg', 'jpeg', 'png', 'gif')) %}
+                            <img src="{{ url_for('static', filename='uploads/' + post.filename) }}" alt="image">
+                        {% elif post.filename.endswith(('mp4', 'webm')) %}
+                            <video controls>
+                                <source src="{{ url_for('static', filename='uploads/' + post.filename) }}" type="video/mp4">
+                            </video>
+                        {% else %}
+                            <a href="{{ url_for('static', filename='uploads/' + post.filename) }}" target="_blank">Скачать файл: {{ post.filename }}</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="post-content">{{ post.content }}</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="footer">
+        <p>{{ t.disclaimer }}</p>
+    </div>
+</body>
+</html>
