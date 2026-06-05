@@ -1,112 +1,13 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DisChan</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div id="disclaimer-overlay" class="overlay">
-        <div class="modal-box">
-            <div class="lang-switch-container">
-                <button onclick="setLanguage('ru')">RU</button>
-                <button onclick="setLanguage('en')">EN</button>
-            </div>
-            <div id="disclaimer-text-ru" class="lang-content">
-                <h2>Внимание (18+)</h2>
-                <p>Этот сайт может содержать контент, не предназначенный для лиц младше 18 лет. Продолжая, вы подтверждаете свой совершеннолетний возраст.</p>
-            </div>
-            <div id="disclaimer-text-en" class="lang-content hidden">
-                <h2>Warning (18+)</h2>
-                <p>This site may contain content not intended for persons under 18 years of age. By continuing, you confirm that you are of legal age.</p>
-            </div>
-            <div class="modal-buttons">
-                <button id="btn-exit" class="btn-danger" onclick="exitSite()">Выйти / Exit</button>
-                <button id="btn-enter" class="btn-success" onclick="acceptDisclaimer()">Войти / Enter</button>
-            </div>
-        </div>
+<div id="admin-panel" class="sidebar-block hidden" style="position: absolute; bottom: 80px; left: 20px; z-index: 999; background: #111; max-width: 350px; width: 100%; box-shadow: 0 0 15px rgba(0,0,0,0.8);">
+    <h3 style="color: #c25e5e; margin-bottom: 10px;">Admin Console</h3>
+
+    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+        <button onclick="renderOsintLogs()" style="flex: 1; padding: 6px; font-size: 10px;">ПОСТЫ (OSINT)</button>
+        <button onclick="renderUsersList()" style="flex: 1; padding: 6px; font-size: 10px;">ЮЗЕРЫ</button>
     </div>
 
-    <div id="settings-overlay" class="overlay hidden">
-        <div class="modal-box settings-box">
-            <h2 id="label-settings-title">Настройки</h2>
-            <div class="setting-item">
-                <span id="label-compact-mode">Компактный режим (Скрыть медиа)</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-compact" onchange="toggleCompactMode()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <button class="btn-close" onclick="closeSettings()" id="btn-close-settings">Закрыть</button>
+    <div id="admin-content" style="font-size: 11px; font-family: monospace; color: #0f0; max-height: 250px; overflow-y: auto; padding: 5px; background: #000; border: 1px solid #333;">
         </div>
-    </div>
 
-    <div id="main-app" class="app-container hidden">
-
-        <header class="top-bar">
-            <div class="logo">DisChan</div>
-            <div class="stats">
-                <span id="text-online">Онлайн:</span> <span id="online-counter">144</span>
-            </div>
-            <div class="top-actions">
-                <button onclick="openSettings()" id="btn-settings">⚙️</button>
-                <button onclick="toggleLanguage()" id="btn-lang-toggle">EN</button>
-                <button onclick="logout()" id="btn-logout" class="hidden">Выйти</button>
-            </div>
-        </header>
-
-        <div class="main-content">
-
-            <main class="feed-area" id="feed-area">
-                <div id="posts-container" class="posts-list">
-                    </div>
-                <div id="load-more-trigger" class="load-more">Загрузка...</div>
-            </main>
-
-            <aside class="sidebar">
-                <div class="sidebar-scrollable">
-                    <div id="auth-box" class="sidebar-block">
-                        <h3 id="label-auth-title">Регистрация</h3>
-                        <input type="text" id="auth-username" placeholder="Никнейм">
-                        <button onclick="registerUser()" id="btn-register">Создать аккаунт</button>
-                    </div>
-
-                    <div id="profile-box" class="sidebar-block hidden">
-                        <div class="user-info">
-                            <div class="avatar-imitation"></div>
-                            <div class="user-details">
-                                <div id="profile-name" class="username">User</div>
-                                <div id="profile-id" class="user-id">#0000</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-block post-form-block">
-                        <h3 id="label-create-post">Создать пост</h3>
-                        <div class="markup-hints">**жирный** | ||спойлер|| | &gt; цитата</div>
-                        <textarea id="post-text" placeholder="Что у вас нового?"></textarea>
-
-                        <label class="file-upload-label" for="post-file">
-                            <span id="label-choose-file">Выбрать фото/видео</span>
-                            <input type="file" id="post-file" accept="image/*,video/*" onchange="handleFileSelect()">
-                        </label>
-                        <div id="file-preview-name"></div>
-
-                        <button onclick="createNewPost()" id="btn-send-post" class="btn-primary">Опубликовать</button>
-                    </div>
-                </div>
-            </aside>
-
-            <div id="admin-panel" class="sidebar-block hidden" style="position: absolute; bottom: 20px; left: 20px; z-index: 999; background: #111; max-width: 300px; max-height: 400px; overflow-y: auto;">
-                <h3 style="color: #c25e5e;">Admin OSINT Panel</h3>
-                <div id="osint-logs" style="font-size: 11px; font-family: monospace; color: #0f0;"></div>
-                <button onclick="document.getElementById('admin-panel').classList.add('hidden')" style="margin-top: 10px; padding: 5px; background: #333; color: white; width: 100%; border: none; border-radius: 4px;">Закрыть</button>
-            </div>
-
-        </div>
-    </div>
-
-    <script src="app.js"></script>
-</body>
-</html>
+    <button onclick="document.getElementById('admin-panel').classList.add('hidden')" style="margin-top: 10px; width: 100%; padding: 8px; background: #333; color: white;">ЗАКРЫТЬ</button>
+</div>
